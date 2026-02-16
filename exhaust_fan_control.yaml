@@ -1,17 +1,17 @@
 blueprint:
-  name: Exhaust Fan Control 
-  description: Turn off exhaust fan after a specified delay.
+  name: Bathroom Fan Control 
+  description: Turn off bathroom exhaust fan after a specified delay.
   domain: automation
   input:
     exhaust_fan:
-      name: Exhaust Fan
+      name: Bathroom Exhaust Fan
       description: The fan to control.
       selector:
         entity:
           domain: switch
     delay_time:
       name: Delay Time
-      description: Time in seconds to wait before turning off the exhaust fan.
+      description: Time in seconds to wait before turning off the bathroom fan.
       default: 600
       selector:
         number:
