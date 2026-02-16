@@ -20,7 +20,8 @@ blueprint:
           step: 1
     automation_lock:
       name: Automation Lock
-      description: A boolean (input_boolean) helper that prevents this automation from running when turned on (e.g., when triggered by another automation).
+      description: A boolean (input_boolean) helper that prevents this automation from running when turned on (e.g., when triggered by another automation). Leave empty to disable this check.
+      default: []
       selector:
         entity:
           domain: input_boolean
@@ -31,9 +32,13 @@ trigger:
     to: "on"
 
 condition:
-  - condition: state
-    entity_id: !input automation_lock
-    state: "off"
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ not automation_lock }}"
+      - condition: state
+        entity_id: !input automation_lock
+        state: "off"
 
 action:
   - delay:
