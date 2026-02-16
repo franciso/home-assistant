@@ -1,6 +1,6 @@
 blueprint:
-  name: Bathroom Fan Control 
-  description: Turn off bathroom exhaust fan after a specified delay.
+  name: Fan Control 
+  description: Turn off fan after a specified delay.
   domain: automation
   input:
     exhaust_fan:
@@ -25,19 +25,15 @@ blueprint:
       selector:
         entity:
           domain: input_boolean
-
 trigger:
   - platform: state
     entity_id: !input exhaust_fan
     to: "on"
-
 variables:
   automation_lock: !input automation_lock
-
 condition:
   - condition: template
     value_template: "{{ not automation_lock or is_state(automation_lock, 'off') }}"
-
 action:
   - delay:
       seconds: !input delay_time
