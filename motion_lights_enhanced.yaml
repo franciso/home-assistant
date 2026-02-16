@@ -1,0 +1,187 @@
+blueprint:
+  name: Motion-activated Light (Enhanced)
+  description: Turn on lights when motion is detected, with individual brightness control or simple on/off
+  domain: automation
+  input:
+    motion_entity:
+      name: Motion Sensor
+      description: The motion sensor that triggers the lights
+      selector:
+        entity:
+          domain: binary_sensor
+    
+    light_entity_1:
+      name: Light 1
+      description: First light to control
+      selector:
+        entity:
+          domain: light
+    
+    light_1_brightness:
+      name: Light 1 Brightness
+      description: Brightness percentage (leave empty for default/last brightness)
+      default:
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    
+    light_entity_2:
+      name: Light 2 (Optional)
+      description: Second light to control
+      default:
+      selector:
+        entity:
+          domain: light
+    
+    light_2_brightness:
+      name: Light 2 Brightness
+      description: Brightness percentage (leave empty for default/last brightness)
+      default:
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    
+    light_entity_3:
+      name: Light 3 (Optional)
+      description: Third light to control
+      default:
+      selector:
+        entity:
+          domain: light
+    
+    light_3_brightness:
+      name: Light 3 Brightness
+      description: Brightness percentage (leave empty for default/last brightness)
+      default:
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: "%"
+    
+    no_motion_wait:
+      name: Wait time
+      description: Time to leave the lights on after last motion is detected
+      default: 120
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  light_1: !input light_entity_1
+  brightness_1: !input light_1_brightness
+  light_2: !input light_entity_2
+  brightness_2: !input light_2_brightness
+  light_3: !input light_entity_3
+  brightness_3: !input light_3_brightness
+
+trigger:
+  - platform: state
+    entity_id: !input motion_entity
+    from: "off"
+    to: "on"
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_1 not in [{}, none, ''] }}"
+          - condition: template
+            value_template: "{{ brightness_1 not in [none, ''] }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: "{{ light_1 }}"
+            data:
+              brightness_pct: "{{ brightness_1 | int }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ light_1 not in [{}, none, ''] }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: "{{ light_1 }}"
+  
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_2 not in [{}, none, ''] }}"
+          - condition: template
+            value_template: "{{ brightness_2 not in [none, ''] }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: "{{ light_2 }}"
+            data:
+              brightness_pct: "{{ brightness_2 | int }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ light_2 not in [{}, none, ''] }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: "{{ light_2 }}"
+  
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_3 not in [{}, none, ''] }}"
+          - condition: template
+            value_template: "{{ brightness_3 not in [none, ''] }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: "{{ light_3 }}"
+            data:
+              brightness_pct: "{{ brightness_3 | int }}"
+      - conditions:
+          - condition: template
+            value_template: "{{ light_3 not in [{}, none, ''] }}"
+        sequence:
+          - service: light.turn_on
+            target:
+              entity_id: "{{ light_3 }}"
+  
+  - wait_for_trigger:
+      platform: state
+      entity_id: !input motion_entity
+      from: "on"
+      to: "off"
+  
+  - delay: !input no_motion_wait
+  
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_1 not in [{}, none, ''] }}"
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: "{{ light_1 }}"
+  
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_2 not in [{}, none, ''] }}"
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: "{{ light_2 }}"
+  
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ light_3 not in [{}, none, ''] }}"
+        sequence:
+          - service: light.turn_off
+            target:
+              entity_id: "{{ light_3 }}"
