@@ -1,0 +1,43 @@
+blueprint:
+  name: Exhaust Fan Control 
+  description: Turn off exhaust fan after a specified delay.
+  domain: automation
+  input:
+    exhaust_fan:
+      name: Exhaust Fan
+      description: The fan to control.
+      selector:
+        entity:
+          domain: switch
+    delay_time:
+      name: Delay Time
+      description: Time in seconds to wait before turning off the exhaust fan.
+      default: 600
+      selector:
+        number:
+          min: 0
+          max: 3600
+          step: 1
+    automation_lock:
+      name: Automation Lock
+      description: A boolean (input_boolean) helper that prevents this automation from running when turned on (e.g., when triggered by another automation).
+      selector:
+        entity:
+          domain: input_boolean
+
+trigger:
+  - platform: state
+    entity_id: !input exhaust_fan
+    to: "on"
+
+condition:
+  - condition: state
+    entity_id: !input automation_lock
+    state: "off"
+
+action:
+  - delay:
+      seconds: !input delay_time
+  - service: switch.turn_off
+    target:
+      entity_id: !input exhaust_fan
