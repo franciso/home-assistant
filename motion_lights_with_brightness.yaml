@@ -1,0 +1,67 @@
+blueprint:
+  name: Motion-activated Light with Brightness Control
+  description: Turn on a light when motion or occupancy is detected and set it to a specific brightness level.
+  domain: automation
+  input:
+    motion_entity:
+      name: Motion/Presence Sensor
+      selector:
+        entity:
+          filter:
+            - domain: binary_sensor
+              device_class: motion
+            - domain: binary_sensor
+              device_class: occupancy
+    light_target:
+      name: Light
+      selector:
+        target:
+          entity:
+            - domain: light
+    no_motion_wait:
+      name: Wait time
+      description: Time to leave the light on after last motion/occupancy is cleared.
+      default: 120
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+    brightness_level:
+      name: Brightness Level
+      description: Brightness level to set when motion/occupancy is detected (1-100%)
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+
+# If motion is detected within the delay,
+# we restart the script.
+mode: restart
+max_exceeded: silent
+
+trigger:
+  platform: state
+  entity_id: !input motion_entity
+  from: "off"
+  to: "on"
+
+action:
+  - alias: "Turn on the light at specified brightness"
+    service: light.turn_on
+    target: !input light_target
+    data:
+      brightness_pct: !input brightness_level
+  - alias: "Wait until there is no motion/occupancy from device"
+    wait_for_trigger:
+      platform: state
+      entity_id: !input motion_entity
+      from: "on"
+      to: "off"
+  - alias: "Wait the number of seconds that has been set"
+    delay: !input no_motion_wait
+  - alias: "Turn off the light"
+    service: light.turn_off
+    target: !input light_target
